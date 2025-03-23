@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countries Visited Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .info-box {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="counter">Countries visited: <span id="count">0</span></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-ajax@2.1.0/dist/leaflet.ajax.min.js"></script>
+    <script src="countries.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([30, 0], 2);
+
+        // Add a tile layer (background map)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Countries you've visited (ISO 3166-1 alpha-3 codes)
+        // Replace these with the countries you've actually visited
+        const visitedCountries = [
+            'USA', 'GBR', 'FRA', 'ESP', 'ITA', 'DEU', 'TUR', 'GRC', 'MAR', 'TUN', 'SYR', 'JOR',
+            'HRV', 'SVN', 'AUT', 'HUN', 'CZE', 'NLD', 'NOR', 'FIN', 'SWE', 'DNK', 'CHE', 'SMR', 'VAT', 'LIE', 'BEL'
+        ];
+
+        // Update the counter
+        document.getElementById('count').textContent = visitedCountries.length;
+
+        // Function to get color based on whether the country was visited
+        function getColor(country) {
+            return visitedCountries.includes(country.properties.ISO_A3) ? '#4CAF50' : '#e5e5e5';
+        }
+
+        // Style function for the GeoJSON layer
+        function style(feature) {
+            return {
+                fillColor: getColor(feature),
+                weight: 1,
+                opacity: 1,
+                color: 'white',
+                fillOpacity: 0.7
+            };
+        }
+
+        // Add country hover interactions
+        function highlightFeature(e) {
+            const layer = e.target;
+            
+            layer.setStyle({
+                weight: 2,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+            
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+            
+            info.update(layer.feature.properties);
+        }
+
+        function resetHighlight(e) {
+            geojson.resetStyle(e.target);
+            info.update();
+        }
+
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight
+            });
+        }
+
+        // Info control disabled as requested
+        const info = {
+            update: function() {} // Empty function to avoid errors in other functions
+        };
+
+        // Load the GeoJSON data
+        const geojson = L.geoJson(countriesData, {
+            style: style,
+            onEachFeature: onEachFeature
+        }).addTo(map);
+    </script>
+</body>
+</html>
